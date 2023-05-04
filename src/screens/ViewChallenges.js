@@ -1,19 +1,25 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
   Image,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
+  Modal,
+  Switch,
+  Button,
 } from 'react-native';
 
-const ChallengeCard = ({ challenge, onJoin }) => {
+const ChallengeCard = ({challenge, onJoin}) => {
   return (
     <TouchableOpacity style={styles.cardContainer} onPress={onJoin}>
-      <Image source={{ uri: challenge.image }} style={styles.cardImage} />
+      <Image source={{uri: challenge.image}} style={styles.cardImage} />
       <View style={styles.cardDetails}>
         <Text style={styles.cardName}>{challenge.name}</Text>
-        <Text style={styles.cardDescription}>{challenge.description}</Text>
+        <Text numberOfLines={3} style={styles.cardDescription}>
+          {challenge.description}
+        </Text>
         <TouchableOpacity style={styles.joinButton} onPress={onJoin}>
           <Text style={styles.joinButtonText}>Join</Text>
         </TouchableOpacity>
@@ -26,7 +32,7 @@ const ViewChallengeScreen = () => {
   const challenges = [
     {
       id: '1',
-      name: 'Challenge 1',
+      name: 'Challenge 6',
       description: 'This is the description of Challenge 1.',
       image: 'https://picsum.photos/300/200?random=1',
     },
@@ -44,25 +50,68 @@ const ViewChallengeScreen = () => {
     },
   ];
 
-  const handleJoinChallenge = (challengeId) => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedHealthProvider, setSelectedHealthProvider] = useState(null);
+  const [isGoogleFitSelected, setIsGoogleFitSelected] = useState(false);
+
+  const handleToggleSwitch = () => {
+    setIsGoogleFitSelected(!isGoogleFitSelected);
+  };
+
+  const handleConfirmSelection = () => {
+    setModalVisible(false);
+    setSelectedHealthProvider(
+      isGoogleFitSelected ? 'Google Fit' : 'Apple Health',
+    );
+  };
+
+  const handleJoinChallenge = challengeId => {
     // Handle joining a challenge
+    setModalVisible(true);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>View Challenges</Text>
-      <View style={styles.cardsContainer}>
-        {challenges.map((challenge) => (
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollStyle}>
+        {challenges.map(challenge => (
           <ChallengeCard
             key={challenge.id}
             challenge={challenge}
             onJoin={() => handleJoinChallenge(challenge.id)}
           />
         ))}
-      </View>
+        <Modal animationType="slide" transparent={true} visible={modalVisible}>
+          <View>
+            <Text>Select Health Provider:</Text>
+            <Switch
+              value={isGoogleFitSelected}
+              onValueChange={handleToggleSwitch}
+            />
+            <Text>{isGoogleFitSelected ? 'Google Fit' : 'Apple Health'}</Text>
+            <Button title="Cancel" onPress={() => setModalVisible(false)} />
+            <Button
+              title="OK"
+              onPress={handleConfirmSelection}
+              disabled={!selectedHealthProvider}
+            />
+          </View>
+        </Modal>
+      </ScrollView>
     </View>
   );
 };
+
+ViewChallengeScreen.navigationOptions = ({navigation}) => ({
+  headerTitle: 'View Challenges',
+  headerRight: () => (
+    <TouchableOpacity onPress={() => navigation.navigate('CreateChallenge')}>
+      <Text>Create Challenge</Text>
+    </TouchableOpacity>
+  ),
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -75,10 +124,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
   },
-  cardsContainer: {
+  scrollStyle: {
+    justifyContent: 'space-between',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
   },
   cardContainer: {
     width: '48%',
