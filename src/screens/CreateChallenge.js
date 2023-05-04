@@ -1,7 +1,13 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, Image, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
-import styles from './styles';
 
 const CreateChallengeScreen = () => {
   const [name, setName] = useState('');
@@ -64,3 +70,64 @@ const CreateChallengeScreen = () => {
 };
 
 export default CreateChallengeScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 16,
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  form: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  input: {
+    width: '100%',
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  uploadButton: {
+    backgroundColor: '#2a9df4',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 4,
+    marginBottom: 16,
+  },
+  uploadButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  image: {
+    width: '100%',
+    height: 200,
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  pickerContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  pickerLabel: {
+    marginRight: 16,
+    fontSize: 16,
+  },
+  picker: {
+    flex: 1,
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+});
