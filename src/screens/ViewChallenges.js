@@ -28,7 +28,7 @@ const ChallengeCard = ({challenge, onJoin}) => {
   );
 };
 
-const ViewChallengeScreen = () => {
+const ViewChallengeScreen = ({navigation}) => {
   const challenges = [
     {
       id: '1',
@@ -67,7 +67,8 @@ const ViewChallengeScreen = () => {
 
   const handleJoinChallenge = challengeId => {
     // Handle joining a challenge
-    setModalVisible(true);
+    // setModalVisible(true);
+    navigation.navigate('Leaderboard');
   };
 
   return (
