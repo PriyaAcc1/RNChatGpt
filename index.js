@@ -4,15 +4,15 @@ import {createAppContainer} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
 import LoginScreen from './src/screens/Login';
 import RegistrationScreen from './src/screens/UserRegistration';
-// import CreateChallengeScreen from './screens/CreateChallengeScreen';
-// import ViewChallengesScreen from './screens/ViewChallengesScreen';
+import CreateChallengeScreen from './src/screens/CreateChallenge';
+import ViewChallengesScreen from './src/screens/ViewChallenges';
 // import LeaderboardScreen from './screens/LeaderboardScreen';
 
 const AppNavigator = createStackNavigator({
   Login: {screen: LoginScreen},
   Registration: {screen: RegistrationScreen},
-  // CreateChallenge: { screen: CreateChallengeScreen },
-  // ViewChallenges: { screen: ViewChallengesScreen },
+  CreateChallenge: {screen: CreateChallengeScreen},
+  ViewChallenges: {screen: ViewChallengesScreen},
   // Leaderboard: { screen: LeaderboardScreen },
 });
 

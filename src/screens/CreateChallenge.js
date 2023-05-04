@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
+import ImageCropPicker from 'react-native-image-crop-picker';
 
 const CreateChallengeScreen = () => {
   const [name, setName] = useState('');
@@ -20,7 +21,15 @@ const CreateChallengeScreen = () => {
   };
 
   const onImageUpload = () => {
-    // Handle image upload
+    ImageCropPicker.openPicker({
+      width: 300,
+      height: 400,
+      cropping: false,
+      mediaType: 'photo',
+    }).then(response => {
+      const source = {uri: response.path};
+      setImage(source);
+    });
   };
 
   return (
@@ -43,11 +52,7 @@ const CreateChallengeScreen = () => {
           <Text style={styles.uploadButtonText}>Upload Image</Text>
         </TouchableOpacity>
         {image && (
-          <Image
-            source={{uri: image}}
-            style={styles.image}
-            resizeMode="contain"
-          />
+          <Image source={image} style={styles.image} resizeMode="contain" />
         )}
         <View style={styles.pickerContainer}>
           <Text style={styles.pickerLabel}>Challenge Matrix:</Text>
@@ -106,19 +111,16 @@ const styles = StyleSheet.create({
   uploadButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
   },
   image: {
     width: '100%',
     height: 200,
-    marginTop: 16,
     marginBottom: 16,
   },
   pickerContainer: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
   },
   pickerLabel: {
     marginRight: 16,

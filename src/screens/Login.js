@@ -14,7 +14,7 @@ const LoginScreen = ({navigation}) => {
   const handleLogin = () => {
     // Perform login logic here
     if (username === 'admin' && password === '123') {
-      navigation.navigate('CreateChallenge');
+      navigation.navigate('ViewChallenges');
     }
   };
 
