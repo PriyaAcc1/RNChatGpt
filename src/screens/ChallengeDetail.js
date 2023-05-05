@@ -10,6 +10,7 @@ import {
   Button,
 } from 'react-native';
 import GoogleFit, {Scopes} from 'react-native-google-fit';
+import moment from 'moment';
 
 const authOptions = {
   scopes: [
@@ -25,6 +26,7 @@ const ChallengeDetailsScreen = ({navigation}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedHealthProvider, setSelectedHealthProvider] = useState(null);
   const [isGoogleFitSelected, setIsGoogleFitSelected] = useState(false);
+  const [userData, setUserData] = useState([]);
 
   const checkPermissions = async () => {
     GoogleFit.authorize(authOptions)
@@ -36,7 +38,9 @@ const ChallengeDetailsScreen = ({navigation}) => {
             Scopes.FITNESS_BODY_READ,
             Scopes.FITNESS_BODY_WRITE,
           ],
-          startDate: '2023-05-04T00:00:00.000Z',
+          startDate: moment(moment().subtract(7, 'days'))
+            .startOf('day')
+            .format(),
           endDate: new Date().toISOString(),
         };
         GoogleFit.getDailyStepCountSamples(options)
@@ -44,7 +48,18 @@ const ChallengeDetailsScreen = ({navigation}) => {
             const p = res.filter(
               item => item.source === 'com.google.android.gms:estimated_steps',
             );
-            console.log('user data', p[0].steps);
+            const dataSet = {};
+            const userDates = p[0].steps.map(item => item.date);
+            for (let i = 6; i >= 0; i--) {
+              const date = moment().subtract(i, 'days').format('YYYY-MM-DD');
+              const dateLabel = moment().subtract(i, 'days').format('ddd');
+              userDates.indexOf(date) !== -1
+                ? (dataSet[dateLabel] = p[0].steps.filter(
+                    item => item.date === date,
+                  )[0].value)
+                : (dataSet[dateLabel] = 0);
+            }
+            setUserData(dataSet);
           })
           .catch(err => {
             console.log('Error fetching daily step count:', err);
@@ -64,9 +79,9 @@ const ChallengeDetailsScreen = ({navigation}) => {
     );
   };
 
-  const handleJoinChallenge = () => {
+  const handleJoinChallenge = async () => {
     if (joined) {
-      navigation.navigate('Leaderboard');
+      navigation.navigate('Leaderboard', {userData});
       return;
     }
     setJoined(true);

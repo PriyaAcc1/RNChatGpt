@@ -1,24 +1,27 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View, StyleSheet, Dimensions} from 'react-native';
 import {BarChart} from 'react-native-chart-kit';
 
-function WeeklyDataChart() {
+const screenWidth = Dimensions.get('window').width;
+const chartWidth = screenWidth - 20;
+
+const WeeklyDataChart = ({navigation}) => {
+  const {userData = {}} = navigation.state.params;
   const chartData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    labels: Object.keys(userData),
     datasets: [
       {
-        data: [20, 45, 28, 80, 99, 43, 60],
+        data: Object.values(userData),
         color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, // set the color of the bar chart
       },
     ],
   };
-
+  console.log('leaderboard', userData);
   return (
-    <View>
-      <Text>Weekly Data Chart</Text>
+    <View style={styles.container}>
       <BarChart
         data={chartData}
-        width={300}
+        width={chartWidth}
         height={200}
         chartConfig={{
           backgroundColor: '#fff',
@@ -33,6 +36,14 @@ function WeeklyDataChart() {
       />
     </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 16,
+  },
+});
 
 export default WeeklyDataChart;
