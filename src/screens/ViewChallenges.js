@@ -6,102 +6,43 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Modal,
-  Switch,
-  Button,
 } from 'react-native';
+import {useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
-const ChallengeCard = ({challenge, onJoin}) => {
+const ChallengeCard = ({challenge, onJoin, navigation}) => {
   return (
-    <TouchableOpacity style={styles.cardContainer} onPress={onJoin}>
+    <TouchableOpacity
+      style={styles.cardContainer}
+      onPress={() => navigation.navigate('ChallengeDetail', {challenge})}>
       <Image source={{uri: challenge.image}} style={styles.cardImage} />
       <View style={styles.cardDetails}>
         <Text style={styles.cardName}>{challenge.name}</Text>
         <Text numberOfLines={3} style={styles.cardDescription}>
           {challenge.description}
         </Text>
-        <TouchableOpacity style={styles.joinButton} onPress={onJoin}>
-          <Text style={styles.joinButtonText}>Join</Text>
-        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
 };
 
 const ViewChallengeScreen = ({navigation}) => {
-  const challenges = [
-    {
-      id: '1',
-      name: 'Challenge 6',
-      description: 'This is the description of Challenge 1.',
-      image: 'https://picsum.photos/300/200?random=1',
-    },
-    {
-      id: '2',
-      name: 'Challenge 2',
-      description: 'This is the description of Challenge 2.',
-      image: 'https://picsum.photos/300/200?random=2',
-    },
-    {
-      id: '3',
-      name: 'Challenge 3',
-      description: 'This is the description of Challenge 3.',
-      image: 'https://picsum.photos/300/200?random=3',
-    },
-  ];
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedHealthProvider, setSelectedHealthProvider] = useState(null);
-  const [isGoogleFitSelected, setIsGoogleFitSelected] = useState(false);
-
-  const handleToggleSwitch = () => {
-    setIsGoogleFitSelected(!isGoogleFitSelected);
-  };
-
-  const handleConfirmSelection = () => {
-    setModalVisible(false);
-    setSelectedHealthProvider(
-      isGoogleFitSelected ? 'Google Fit' : 'Apple Health',
-    );
-  };
-
-  const handleJoinChallenge = challengeId => {
-    // Handle joining a challenge
-    // setModalVisible(true);
-    navigation.navigate('Leaderboard');
-  };
+  const challenges = useSelector(state => state.challenges);
+  console.log('data', challenges);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>View Challenges</Text>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollStyle}>
-        {challenges.map(challenge => (
-          <ChallengeCard
-            key={challenge.id}
-            challenge={challenge}
-            onJoin={() => handleJoinChallenge(challenge.id)}
-          />
-        ))}
-        <Modal animationType="slide" transparent={true} visible={modalVisible}>
-          <View>
-            <Text>Select Health Provider:</Text>
-            <Switch
-              value={isGoogleFitSelected}
-              onValueChange={handleToggleSwitch}
-            />
-            <Text>{isGoogleFitSelected ? 'Google Fit' : 'Apple Health'}</Text>
-            <Button title="Cancel" onPress={() => setModalVisible(false)} />
-            <Button
-              title="OK"
-              onPress={handleConfirmSelection}
-              disabled={!selectedHealthProvider}
-            />
-          </View>
-        </Modal>
-      </ScrollView>
-    </View>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollStyle}>
+      {challenges.map(challenge => (
+        <ChallengeCard
+          key={challenge.id}
+          challenge={challenge}
+          navigation={navigation}
+        />
+      ))}
+    </ScrollView>
   );
 };
 

@@ -9,32 +9,50 @@ import {
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import ImageCropPicker from 'react-native-image-crop-picker';
+import {useDispatch} from 'react-redux';
+import 'react-native-get-random-values';
+import {v4 as uuidv4} from 'uuid';
 
-const CreateChallengeScreen = () => {
+const CreateChallengeScreen = ({navigation}) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [selectedMatrix, setSelectedMatrix] = useState('');
+  const dispatch = useDispatch();
 
   const createChallenge = () => {
     // Handle creating a challenge
+    const challenge = {
+      id: uuidv4(),
+      name: name,
+      description: description,
+      image: image,
+      joined: false,
+    };
+    dispatch({
+      type: 'ADD_CHALLENGE',
+      payload: {
+        challenge,
+      },
+    });
+    navigation.navigate('ViewChallenges');
   };
 
-  const onImageUpload = () => {
+  const onImageUpload = async () => {
     ImageCropPicker.openPicker({
       width: 300,
       height: 400,
       cropping: false,
       mediaType: 'photo',
+      includeBase64: true,
     }).then(response => {
-      const source = {uri: response.path};
+      const source = `data:${response.mime};base64,${response.data}`;
       setImage(source);
     });
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Create Challenge</Text>
       <View style={styles.form}>
         <TextInput
           style={styles.input}
@@ -48,11 +66,15 @@ const CreateChallengeScreen = () => {
           value={description}
           onChangeText={setDescription}
         />
-        <TouchableOpacity style={styles.uploadButton} onPress={onImageUpload}>
-          <Text style={styles.uploadButtonText}>Upload Image</Text>
+        <TouchableOpacity style={styles.createButton} onPress={onImageUpload}>
+          <Text style={styles.createButtonText}>Upload Image</Text>
         </TouchableOpacity>
         {image && (
-          <Image source={image} style={styles.image} resizeMode="contain" />
+          <Image
+            source={{uri: image}}
+            style={styles.image}
+            resizeMode="contain"
+          />
         )}
         <View style={styles.pickerContainer}>
           <Text style={styles.pickerLabel}>Challenge Matrix:</Text>
@@ -61,13 +83,11 @@ const CreateChallengeScreen = () => {
             style={styles.picker}
             onValueChange={itemValue => setSelectedMatrix(itemValue)}>
             <Picker.Item label="Select a matrix" value="" />
-            <Picker.Item label="Matrix 1" value="matrix1" />
-            <Picker.Item label="Matrix 2" value="matrix2" />
-            <Picker.Item label="Matrix 3" value="matrix3" />
+            <Picker.Item label="Step Count" value="stepCount" />
           </Picker>
         </View>
-        <TouchableOpacity style={styles.createButton} onPress={createChallenge}>
-          <Text style={styles.createButtonText}>Create Challenge</Text>
+        <TouchableOpacity style={styles.uploadButton} onPress={createChallenge}>
+          <Text style={styles.uploadButtonText}>Create Challenge</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -89,7 +109,6 @@ const styles = StyleSheet.create({
   },
   form: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   input: {

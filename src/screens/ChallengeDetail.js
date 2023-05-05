@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import GoogleFit, {Scopes} from 'react-native-google-fit';
 import moment from 'moment';
+import {useDispatch, useSelector} from 'react-redux';
 
 const authOptions = {
   scopes: [
@@ -22,11 +23,21 @@ const authOptions = {
 };
 
 const ChallengeDetailsScreen = ({navigation}) => {
-  const [joined, setJoined] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedHealthProvider, setSelectedHealthProvider] = useState(null);
-  const [isGoogleFitSelected, setIsGoogleFitSelected] = useState(false);
+  const [selectedHealthProvider, setSelectedHealthProvider] =
+    useState('googleFit');
   const [userData, setUserData] = useState([]);
+  const challenges = useSelector(state => state.challenges);
+  const dispatch = useDispatch();
+
+  const {name, image, description, joined, id} =
+    navigation.state.params.challenge;
+
+  const [challengeJoin, setChallengeJoin] = useState(joined);
+
+  useEffect(() => {
+    checkPermissions();
+  });
 
   const checkPermissions = async () => {
     GoogleFit.authorize(authOptions)
@@ -48,18 +59,19 @@ const ChallengeDetailsScreen = ({navigation}) => {
             const p = res.filter(
               item => item.source === 'com.google.android.gms:estimated_steps',
             );
-            const dataSet = {};
-            const userDates = p[0].steps.map(item => item.date);
-            for (let i = 6; i >= 0; i--) {
-              const date = moment().subtract(i, 'days').format('YYYY-MM-DD');
-              const dateLabel = moment().subtract(i, 'days').format('ddd');
-              userDates.indexOf(date) !== -1
-                ? (dataSet[dateLabel] = p[0].steps.filter(
-                    item => item.date === date,
-                  )[0].value)
-                : (dataSet[dateLabel] = 0);
-            }
-            setUserData(dataSet);
+            // const dataSet = {};
+            // const userDates = p[0].steps.map(item => item.date);
+            // for (let i = 6; i >= 0; i--) {
+            //   const date = moment().subtract(i, 'days').format('YYYY-MM-DD');
+            //   const dateLabel = moment().subtract(i, 'days').format('ddd');
+            //   userDates.indexOf(date) !== -1
+            //     ? (dataSet[dateLabel] = p[0].steps.filter(
+            //         item => item.date === date,
+            //       )[0].value)
+            //     : (dataSet[dateLabel] = 0);
+            // }
+            // setUserData(dataSet);
+            console.log('google fit data', p[0].steps);
           })
           .catch(err => {
             console.log('Error fetching daily step count:', err);
@@ -68,15 +80,22 @@ const ChallengeDetailsScreen = ({navigation}) => {
       .catch(err => console.log('Auth err', err));
   };
 
-  const handleToggleSwitch = () => {
-    setIsGoogleFitSelected(!isGoogleFitSelected);
-  };
-
   const handleConfirmSelection = () => {
+    const updatedChallenges = challenges.map(challenge => {
+      if (challenge.id === id) {
+        challenge.healthProvider = selectedHealthProvider;
+        challenge.joined = true;
+      }
+      return challenge;
+    });
+    setChallengeJoin(true);
+    dispatch({
+      type: 'UPDATE_CHALLENGES',
+      payload: {
+        challenges: updatedChallenges,
+      },
+    });
     setModalVisible(false);
-    setSelectedHealthProvider(
-      isGoogleFitSelected ? 'Google Fit' : 'Apple Health',
-    );
   };
 
   const handleJoinChallenge = async () => {
@@ -84,40 +103,57 @@ const ChallengeDetailsScreen = ({navigation}) => {
       navigation.navigate('Leaderboard', {userData});
       return;
     }
-    setJoined(true);
     setModalVisible(true);
     checkPermissions();
   };
 
   return (
     <View style={styles.container}>
-      <Image
-        source={{uri: 'https://example.com/challenge-image.jpg'}}
-        style={styles.image}
-      />
-      <Text style={styles.challengeName}>Challenge Name</Text>
-      <Text style={styles.challengeDescription}>Challenge Description</Text>
+      <Image source={{uri: image}} style={styles.image} />
+      <Text style={styles.challengeName}>{name}</Text>
+      <Text style={styles.challengeDescription}>{description}</Text>
       <TouchableOpacity
-        style={[styles.joinButton, joined && styles.joinedButton]}
+        style={[styles.joinButton, challengeJoin && styles.joinedButton]}
         onPress={handleJoinChallenge}>
         <Text style={styles.joinButtonText}>
-          {joined ? 'Go to LeaderBoard' : 'Join Challenge'}
+          {challengeJoin ? 'Go to LeaderBoard' : 'Join Challenge'}
         </Text>
       </TouchableOpacity>
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
-        <View>
-          <Text>Select Health Provider:</Text>
-          <Switch
-            value={isGoogleFitSelected}
-            onValueChange={handleToggleSwitch}
-          />
-          <Text>{isGoogleFitSelected ? 'Google Fit' : 'Apple Health'}</Text>
-          <Button title="Cancel" onPress={() => setModalVisible(false)} />
-          <Button
-            title="OK"
-            onPress={handleConfirmSelection}
-            disabled={!selectedHealthProvider}
-          />
+        <View style={styles.modal}>
+          <View style={styles.modalContainer}>
+            <Text>Select Health Provider</Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                onPress={() => setSelectedHealthProvider('googleFit')}
+                style={
+                  selectedHealthProvider === 'googleFit'
+                    ? styles.selectedButton
+                    : styles.button
+                }>
+                <Text style={styles.text}>Google Fit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setSelectedHealthProvider('appleHealth')}
+                style={
+                  selectedHealthProvider === 'appleHealth'
+                    ? styles.selectedButton
+                    : styles.button
+                }>
+                <Text style={styles.text}>Apple Health</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.bottomContainer}>
+              <TouchableOpacity
+                style={styles.actionText}
+                onPress={() => setModalVisible(false)}>
+                <Text>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleConfirmSelection}>
+                <Text>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </Modal>
     </View>
@@ -128,10 +164,42 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
+  },
+  actionText: {
+    paddingHorizontal: 10,
+  },
+  bottomContainer: {
+    marginTop: 18,
+    display: 'flex',
     justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    width: 300,
+  },
+  buttonContainer: {
+    marginTop: 12,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    width: 200,
+  },
+  button: {
+    width: '50%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 35,
+    backgroundColor: '#F0ECEB',
+  },
+  selectedButton: {
+    backgroundColor: '#2265BB',
+    width: '50%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 35,
   },
   image: {
-    width: 200,
+    width: '100%',
     height: 200,
     marginBottom: 20,
   },
@@ -159,6 +227,19 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     textAlign: 'center',
+  },
+  modal: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContainer: {
+    width: 300,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
 });
 
