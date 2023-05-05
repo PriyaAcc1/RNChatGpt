@@ -9,44 +9,48 @@ import {
   Switch,
   Button,
 } from 'react-native';
-import {GoogleFit} from 'react-native-google-fit';
+import GoogleFit, {Scopes} from 'react-native-google-fit';
 
-const options = {
-  startDate: new Date().toISOString().slice(0, 10),
-  endDate: new Date().toISOString().slice(0, 10),
-  bucketUnit: 'DAY',
-  bucketInterval: 1,
+const authOptions = {
+  scopes: [
+    Scopes.FITNESS_ACTIVITY_READ,
+    Scopes.FITNESS_ACTIVITY_WRITE,
+    Scopes.FITNESS_BODY_READ,
+    Scopes.FITNESS_BODY_WRITE,
+  ],
 };
 
-const ChallengeDetailsScreen = () => {
+const ChallengeDetailsScreen = ({navigation}) => {
   const [joined, setJoined] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedHealthProvider, setSelectedHealthProvider] = useState(null);
   const [isGoogleFitSelected, setIsGoogleFitSelected] = useState(false);
 
   const checkPermissions = async () => {
-    const permissions = await GoogleFit.checkIsAuthorized([
-      'https://www.googleapis.com/auth/fitness.activity.read',
-      'https://www.googleapis.com/auth/fitness.body.read',
-    ]);
-
-    if (
-      permissions.includes('Denied') ||
-      permissions.includes('NotDetermined')
-    ) {
-      const newPermissions = await GoogleFit.requestPermissions([
-        'https://www.googleapis.com/auth/fitness.activity.read',
-        'https://www.googleapis.com/auth/fitness.body.read',
-      ]);
-
-      if (newPermissions.includes('Denied')) {
-        console.log('Permission denied by user.');
-      } else {
-        console.log('Permission granted.');
-      }
-    } else {
-      console.log('App already has necessary permissions.');
-    }
+    GoogleFit.authorize(authOptions)
+      .then(data => {
+        const options = {
+          scopes: [
+            Scopes.FITNESS_ACTIVITY_READ,
+            Scopes.FITNESS_ACTIVITY_WRITE,
+            Scopes.FITNESS_BODY_READ,
+            Scopes.FITNESS_BODY_WRITE,
+          ],
+          startDate: '2023-05-04T00:00:00.000Z',
+          endDate: new Date().toISOString(),
+        };
+        GoogleFit.getDailyStepCountSamples(options)
+          .then(res => {
+            const p = res.filter(
+              item => item.source === 'com.google.android.gms:estimated_steps',
+            );
+            console.log('user data', p[0].steps);
+          })
+          .catch(err => {
+            console.log('Error fetching daily step count:', err);
+          });
+      })
+      .catch(err => console.log('Auth err', err));
   };
 
   const handleToggleSwitch = () => {
@@ -61,19 +65,13 @@ const ChallengeDetailsScreen = () => {
   };
 
   const handleJoinChallenge = () => {
-    // setJoined(true);
-    // setModalVisible(true);
-    checkPermissions()
-      .then(() => {
-        GoogleFit.getDailyStepCountSamples(options)
-          .then(res => {
-            console.log('Daily step count:', res);
-          })
-          .catch(err => {
-            console.log('Error fetching daily step count:', err);
-          });
-      })
-      .catch((err) => console.log('error',err));
+    if (joined) {
+      navigation.navigate('Leaderboard');
+      return;
+    }
+    setJoined(true);
+    setModalVisible(true);
+    checkPermissions();
   };
 
   return (
@@ -86,10 +84,9 @@ const ChallengeDetailsScreen = () => {
       <Text style={styles.challengeDescription}>Challenge Description</Text>
       <TouchableOpacity
         style={[styles.joinButton, joined && styles.joinedButton]}
-        onPress={handleJoinChallenge}
-        disabled={joined}>
+        onPress={handleJoinChallenge}>
         <Text style={styles.joinButtonText}>
-          {joined ? 'Joined' : 'Join Challenge'}
+          {joined ? 'Go to LeaderBoard' : 'Join Challenge'}
         </Text>
       </TouchableOpacity>
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
