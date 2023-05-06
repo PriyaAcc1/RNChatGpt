@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {useSelector} from 'react-redux';
 import {
   View,
   Text,
@@ -10,10 +11,11 @@ import {
 const LoginScreen = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const users = useSelector(state => state.users);
 
   const handleLogin = () => {
     // Perform login logic here
-    if (username === 'admin' && password === '123') {
+    if (users[username] === password) {
       navigation.navigate('ViewChallenges');
     }
   };

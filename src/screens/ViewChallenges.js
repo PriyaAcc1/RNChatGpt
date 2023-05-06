@@ -8,7 +8,6 @@ import {
   ScrollView,
 } from 'react-native';
 import {useSelector} from 'react-redux';
-import {useDispatch} from 'react-redux';
 
 const ChallengeCard = ({challenge, onJoin, navigation}) => {
   return (
@@ -28,7 +27,6 @@ const ChallengeCard = ({challenge, onJoin, navigation}) => {
 
 const ViewChallengeScreen = ({navigation}) => {
   const challenges = useSelector(state => state.challenges);
-  console.log('data', challenges);
 
   return (
     <ScrollView

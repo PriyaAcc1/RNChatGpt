@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {useDispatch} from 'react-redux';
 import {
   View,
   Text,
@@ -7,14 +8,23 @@ import {
   StyleSheet,
 } from 'react-native';
 
-const UserRegistration = () => {
+const UserRegistration = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const dispatch = useDispatch();
 
   const handleRegister = () => {
     // Perform validation and registration logic here
+    dispatch({
+      type: 'ADD_USER',
+      payload: {
+        username,
+        password,
+      },
+    });
+    navigation.navigate('ViewChallenges');
   };
 
   return (

@@ -8,6 +8,9 @@ const persistConfig = {
 };
 
 const initialState = {
+  users: {
+    admin: '123',
+  },
   challenges: [
     {
       id: '1',
@@ -45,6 +48,14 @@ const rootReducer = (state = initialState, action) => {
       return {
         ...state,
         challenges: [...state.challenges, action.payload.challenge],
+      };
+    case 'ADD_USER':
+      return {
+        ...state,
+        users: {
+          ...state.users,
+          [action.payload.username]: action.payload.password,
+        },
       };
     default:
       return state;

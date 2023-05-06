@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  Switch,
-  Button,
+  Platform,
 } from 'react-native';
 import GoogleFit, {Scopes} from 'react-native-google-fit';
+import HealthKit from 'rn-apple-healthkit';
 import moment from 'moment';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -26,7 +26,7 @@ const ChallengeDetailsScreen = ({navigation}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedHealthProvider, setSelectedHealthProvider] =
     useState('googleFit');
-  const [userData, setUserData] = useState([]);
+  const [userData, setUserData] = useState(null);
   const challenges = useSelector(state => state.challenges);
   const dispatch = useDispatch();
 
@@ -36,10 +36,48 @@ const ChallengeDetailsScreen = ({navigation}) => {
   const [challengeJoin, setChallengeJoin] = useState(joined);
 
   useEffect(() => {
-    checkPermissions();
+    if (joined) {
+      Platform.OS === 'android'
+        ? checkPermissionsAndroid()
+        : checkPermissionsIos();
+    }
   });
 
-  const checkPermissions = async () => {
+  const checkPermissionsIos = () => {
+    HealthKit.initHealthKit(
+      {
+        permissions: {
+          read: ['StepCount'],
+        },
+      },
+      (err, results) => {
+        if (err) {
+          console.warn(err);
+        } else {
+          console.log('HealthKit initialized');
+        }
+      },
+    );
+    const options = {
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
+      sampleType: 'StepCount',
+      unit: 'count',
+      ascending: false,
+      limit: 1,
+    };
+
+    HealthKit.getSamples(options, (err, results) => {
+      if (err) {
+        console.warn(err);
+      } else {
+        const count = results[0].quantity;
+        console.log(`Step count for today: ${count}`);
+      }
+    });
+  };
+
+  const checkPermissionsAndroid = async () => {
     GoogleFit.authorize(authOptions)
       .then(data => {
         const options = {
@@ -49,9 +87,7 @@ const ChallengeDetailsScreen = ({navigation}) => {
             Scopes.FITNESS_BODY_READ,
             Scopes.FITNESS_BODY_WRITE,
           ],
-          startDate: moment(moment().subtract(7, 'days'))
-            .startOf('day')
-            .format(),
+          startDate: moment().startOf('day').format(),
           endDate: new Date().toISOString(),
         };
         GoogleFit.getDailyStepCountSamples(options)
@@ -71,6 +107,7 @@ const ChallengeDetailsScreen = ({navigation}) => {
             //     : (dataSet[dateLabel] = 0);
             // }
             // setUserData(dataSet);
+            setUserData(p[0].steps);
             console.log('google fit data', p[0].steps);
           })
           .catch(err => {
@@ -89,6 +126,9 @@ const ChallengeDetailsScreen = ({navigation}) => {
       return challenge;
     });
     setChallengeJoin(true);
+    Platform.OS === 'android'
+      ? checkPermissionsAndroid()
+      : checkPermissionsIos();
     dispatch({
       type: 'UPDATE_CHALLENGES',
       payload: {
@@ -104,7 +144,6 @@ const ChallengeDetailsScreen = ({navigation}) => {
       return;
     }
     setModalVisible(true);
-    checkPermissions();
   };
 
   return (
@@ -112,6 +151,11 @@ const ChallengeDetailsScreen = ({navigation}) => {
       <Image source={{uri: image}} style={styles.image} />
       <Text style={styles.challengeName}>{name}</Text>
       <Text style={styles.challengeDescription}>{description}</Text>
+      {userData && (
+        <Text style={styles.challengeDescription}>
+          Today's Step Count - {userData[0].value} steps
+        </Text>
+      )}
       <TouchableOpacity
         style={[styles.joinButton, challengeJoin && styles.joinedButton]}
         onPress={handleJoinChallenge}>
