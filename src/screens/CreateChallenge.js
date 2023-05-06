@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import {Picker} from '@react-native-picker/picker';
 import ImageCropPicker from 'react-native-image-crop-picker';
+import RNPickerSelect from 'react-native-picker-select';
 import {useDispatch} from 'react-redux';
 import 'react-native-get-random-values';
 import {v4 as uuidv4} from 'uuid';
@@ -19,6 +19,8 @@ const CreateChallengeScreen = ({navigation}) => {
   const [image, setImage] = useState(null);
   const [selectedMatrix, setSelectedMatrix] = useState('');
   const dispatch = useDispatch();
+
+  const options = [{label: 'Step Count', value: 'stepCount'}];
 
   const createChallenge = () => {
     // Handle creating a challenge
@@ -78,13 +80,12 @@ const CreateChallengeScreen = ({navigation}) => {
         )}
         <View style={styles.pickerContainer}>
           <Text style={styles.pickerLabel}>Challenge Matrix:</Text>
-          <Picker
-            selectedValue={selectedMatrix}
-            style={styles.picker}
-            onValueChange={itemValue => setSelectedMatrix(itemValue)}>
-            <Picker.Item label="Select a matrix" value="" />
-            <Picker.Item label="Step Count" value="stepCount" />
-          </Picker>
+          <RNPickerSelect
+            useNativeAndroidPickerStyle={false}
+            value={selectedMatrix}
+            onValueChange={itemValue => setSelectedMatrix(itemValue)}
+            items={options}
+          />
         </View>
         <TouchableOpacity style={styles.uploadButton} onPress={createChallenge}>
           <Text style={styles.uploadButtonText}>Create Challenge</Text>
@@ -111,6 +112,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
+  createButtonText: {
+    color: '#2265BB',
+  },
   input: {
     width: '100%',
     height: 48,
@@ -126,6 +130,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 4,
     marginBottom: 16,
+    marginTop: 12,
   },
   uploadButtonText: {
     color: '#fff',
@@ -140,6 +145,7 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 12,
   },
   pickerLabel: {
     marginRight: 16,
@@ -150,5 +156,6 @@ const styles = StyleSheet.create({
     height: 48,
     borderWidth: 1,
     borderColor: '#ccc',
+    width: 200,
   },
 });
