@@ -47,14 +47,14 @@ const ChallengeDetailsScreen = ({navigation}) => {
     HealthKit.initHealthKit(
       {
         permissions: {
-          read: ['StepCount'],
+          read: [HealthKit.Constants.Permissions.StepCount],
         },
       },
       (err, results) => {
         if (err) {
-          console.warn(err);
+          console.warn("error...", err);
         } else {
-          console.log('HealthKit initialized');
+          console.log('HealthKit initialized', results);
         }
       },
     );
@@ -67,11 +67,12 @@ const ChallengeDetailsScreen = ({navigation}) => {
       limit: 1,
     };
 
-    HealthKit.getSamples(options, (err, results) => {
+    HealthKit.getStepCount(options, (err, results) => {
       if (err) {
         console.warn(err);
       } else {
-        const count = results[0].quantity;
+        const count = results.value;
+        setUserData(results.value);
         console.log(`Step count for today: ${count}`);
       }
     });
@@ -107,7 +108,7 @@ const ChallengeDetailsScreen = ({navigation}) => {
             //     : (dataSet[dateLabel] = 0);
             // }
             // setUserData(dataSet);
-            setUserData(p[0].steps);
+            setUserData(p[0].steps[0].value);
             console.log('google fit data', p[0].steps);
           })
           .catch(err => {
@@ -153,7 +154,7 @@ const ChallengeDetailsScreen = ({navigation}) => {
       <Text style={styles.challengeDescription}>{description}</Text>
       {userData && (
         <Text style={styles.challengeDescription}>
-          Today's Step Count - {userData[0].value} steps
+          Today's Step Count - {userData} steps
         </Text>
       )}
       <TouchableOpacity
